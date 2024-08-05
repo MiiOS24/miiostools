@@ -3,30 +3,27 @@ import streamlit as st
 from dotenv import load_dotenv
 from datetime import datetime
 import bcrypt
-from maddehours import maddehours_page
 
 # Load environment variables
 load_dotenv()
 
-# Import your custom pages
-from base import base_page
-from interview_bot import interview_bot_page
-from better_data import better_data_page
-from goethe import goethe_page
-from auto_code import auto_code_tool_page
-from whisper import whisper_page
-from survey_builder import survey_builder_page
-from bad_ids import bad_ids_page
-from onboarding import onboarding_page
-from knowledge_manager import knowledge_manager_page
-from persona_bot import persona_bot_page
+# Debugging: Print environment variables to ensure they are loaded
+print("NAME:", os.getenv("NAME"))
+print("PASSWORD:", os.getenv("PASSWORD"))
 
 # Load credentials from environment variables
 NAME = os.getenv("NAME")
 PASSWORD = os.getenv("PASSWORD")
 
+# Check if environment variables are loaded correctly
+if NAME is None or PASSWORD is None:
+    raise ValueError("Environment variables NAME and PASSWORD must be set")
+
+# Convert PASSWORD to bytes
+PASSWORD_BYTES = PASSWORD.encode('utf-8')
+
 # Hash the password
-hashed_password = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt())
+hashed_password = bcrypt.hashpw(PASSWORD_BYTES, bcrypt.gensalt())
 
 # User credentials (hashed password for security)
 USER_CREDENTIALS = {
@@ -36,13 +33,13 @@ USER_CREDENTIALS = {
 # Authenticate user
 def authenticate(email, password):
     if email in USER_CREDENTIALS:
-        return bcrypt.checkpw(password.encode(), USER_CREDENTIALS[email])
+        return bcrypt.checkpw(password.encode('utf-8'), USER_CREDENTIALS[email])
     return False
 
 # Login function
 def login():
     st.title("Login")
-    email = st.text_input("Name")
+    email = st.text_input("Email")
     password = st.text_input("Password", type="password")
     if st.button("Login"):
         if authenticate(email, password):
@@ -79,7 +76,7 @@ def main():
             "👤 PersonaBot (soon)",
             "🚀 Onboarding (soon)",
             "📚 Knowledge Now (soon)",
-            "🔢 Madde"
+            "🔢 Madde Hours"
         ])
 
         # Navigation
@@ -105,7 +102,7 @@ def main():
             onboarding_page()
         elif page == "📚 Knowledge Now (soon)":
             knowledge_manager_page()
-        elif page == "🔢 Madde":
+        elif page == "🔢 Madde Hours":
             maddehours_page()
 
         # Footer
