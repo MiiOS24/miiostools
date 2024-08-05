@@ -1,3 +1,0 @@
-.env
-verschickt-mails-automatisch-8f49a1e119a6.json
-__pycache__/
