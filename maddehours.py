@@ -7,27 +7,37 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 from dotenv import load_dotenv
+import base64
+import json
 
 # Load environment variables
 load_dotenv()
 
+# Function to get credentials from environment variable
+def get_credentials_from_env():
+    encoded_credentials = os.getenv('GOOGLE_CREDENTIALS')
+    if encoded_credentials:
+        decoded_credentials = base64.b64decode(encoded_credentials)
+        return service_account.Credentials.from_service_account_info(json.loads(decoded_credentials))
+    else:
+        raise ValueError("Google credentials not found in environment variables.")
+
 # Function to read data from Google Sheets
 def read_from_google_sheets(sheet_id, sheet_name):
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    SERVICE_ACCOUNT_FILE = os.getenv('SERVICE_ACCOUNT_FILE')  # Load from .env
-
-    credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    
+    # Get credentials from environment variable
+    credentials = get_credentials_from_env()
+    credentials = credentials.with_scopes(SCOPES)
 
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
 
-    result = sheet.values().get(spreadsheetId=sheet_id,
-                                range=f"{sheet_name}!A:D").execute()
+    result = sheet.values().get(spreadsheetId=sheet_id, range=f"{sheet_name}!A:D").execute()
     values = result.get('values', [])
 
     if not values:
-        print('Keine Daten gefunden.')
+        st.error('Keine Daten gefunden.')
         return pd.DataFrame()
 
     df = pd.DataFrame(values[1:], columns=values[0])
