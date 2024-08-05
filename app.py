@@ -19,7 +19,7 @@ PASSWORD = os.getenv("PASSWORD")
 if NAME is None or PASSWORD is None:
     raise ValueError("Environment variables NAME and PASSWORD must be set")
 
-# Convert PASSWORD to bytes
+# Ensure PASSWORD is in bytes
 PASSWORD_BYTES = PASSWORD.encode('utf-8')
 
 # Hash the password
