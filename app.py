@@ -33,6 +33,7 @@ USER_CREDENTIALS = {
 # Authenticate user
 def authenticate(email, password):
     if email in USER_CREDENTIALS:
+        # Convert the input password to bytes and compare
         return bcrypt.checkpw(password.encode('utf-8'), USER_CREDENTIALS[email])
     return False
 
