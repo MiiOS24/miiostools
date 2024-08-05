@@ -19,22 +19,18 @@ PASSWORD = os.getenv("PASSWORD")
 if NAME is None or PASSWORD is None:
     raise ValueError("Environment variables NAME and PASSWORD must be set")
 
-# Ensure PASSWORD is in bytes
-PASSWORD_BYTES = PASSWORD.encode('utf-8')
-
-# Hash the password
-hashed_password = bcrypt.hashpw(PASSWORD_BYTES, bcrypt.gensalt())
-
-# User credentials (hashed password for security)
-USER_CREDENTIALS = {
-    NAME: hashed_password
-}
+# Hash the password and store the hash
+def get_hashed_password(password):
+    password_bytes = password.encode('utf-8')
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed
 
 # Authenticate user
 def authenticate(email, password):
-    if email in USER_CREDENTIALS:
-        # Convert the input password to bytes and compare
-        return bcrypt.checkpw(password.encode('utf-8'), USER_CREDENTIALS[email])
+    if email == NAME:
+        password_bytes = password.encode('utf-8')
+        stored_hashed_password = get_hashed_password(PASSWORD)
+        return bcrypt.checkpw(password_bytes, stored_hashed_password)
     return False
 
 # Login function
