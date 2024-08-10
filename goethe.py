@@ -26,7 +26,7 @@ def generate_linkedin_post(insight, hashtags, use_emojis, temperature, considera
     """
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are an expert in creating LinkedIn posts."},
             {"role": "user", "content": prompt}
