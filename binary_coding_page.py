@@ -72,5 +72,5 @@ def binary_coding_page():
 
     st.write("\n")
     st.write("### Example of Input File Structure")
-    st.image("img\manucode_example.png", caption="Example of the expected structure for the input Excel file.")
-    st.image("img\manucode_example_2.png", caption="This is how the Coding Schema should be set up.")
+    st.image("img/manucode_example.png", caption="Example of the expected structure for the input Excel file.")
+    st.image("img/manucode_example_2.png", caption="This is how the Coding Schema should be set up.")
