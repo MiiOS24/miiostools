@@ -14,6 +14,7 @@ from bad_ids import bad_ids_page
 from onboarding import onboarding_page
 from knowledge_manager import knowledge_manager_page
 from persona_bot import persona_bot_page
+from binary_coding_page import binary_coding_page  # Import the new page
 
 # Main function to run the app
 def main():
@@ -27,6 +28,7 @@ def main():
         "📝 SurveyBuilder (soon)",  
         "🧼 betterDATA",
         "🏷️ autoCODE beta",
+        "🗃️ manuCODE",  # New page placed right under autoCODE
         "☢️ Bad Ids",  
         "🎙️ Whisper",
         "🤖 Interview Bot",
@@ -46,6 +48,8 @@ def main():
         better_data_page()
     elif page == "🏷️ autoCODE beta":
         auto_code_tool_page()
+    elif page == "🗃️ manuCODE":  # New page handler
+        binary_coding_page()
     elif page == "☢️ Bad Ids":
         bad_ids_page()
     elif page == "🎙️ Whisper":
