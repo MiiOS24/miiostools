@@ -23,16 +23,19 @@ def bad_ids_page():
         st.write("First 5 rows of the cleaned dataset:")
         st.write(cleaned_df.head())
 
-        respondent_id_var = st.selectbox("Select the respondent ID variable", options=original_df.columns)
+        # Let the user choose the ID variable from both datasets
+        st.write("Select the respondent ID variable:")
+        original_id_var = st.selectbox("Select from original dataset", options=original_df.columns)
+        cleaned_id_var = st.selectbox("Select from cleaned dataset", options=cleaned_df.columns)
 
         if st.button("Process"):
             with st.spinner("Processing IDs..."):
-                good_ids = set(cleaned_df[respondent_id_var])
-                all_ids = set(original_df[respondent_id_var])
+                good_ids = set(cleaned_df[cleaned_id_var])
+                all_ids = set(original_df[original_id_var])
                 bad_ids = all_ids - good_ids
 
-                good_ids_df = pd.DataFrame(good_ids, columns=[respondent_id_var])
-                bad_ids_df = pd.DataFrame(bad_ids, columns=[respondent_id_var])
+                good_ids_df = pd.DataFrame(good_ids, columns=[original_id_var])
+                bad_ids_df = pd.DataFrame(bad_ids, columns=[original_id_var])
 
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
