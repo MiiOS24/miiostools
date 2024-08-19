@@ -10,7 +10,6 @@ client = OpenAI(api_key=openai_api_key)
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 anthropic_client = anthropic.Anthropic(api_key=anthropic_api_key)
 
-# Function to generate coding scheme using OpenAI API
 def generate_coding_schema(reviews_text, num_codes, question_text, temperature, language):
     prompt = f"""As an expert data analyst, your task is to create a comprehensive coding schema for analyzing open-ended survey responses. The survey question was:
 
@@ -32,16 +31,15 @@ Instructions:
 Output your schema in the following JSON format:
 {{
     "topics": [
-        {{"id": 1, "code": "Brief description of the most common theme"}},
-        {{"id": 2, "code": "Brief description of the second most common theme"}},
+        {{"id": 1, "topic": "Brief description of the most common theme"}},
+        {{"id": 2, "topic": "Brief description of the second most common theme"}},
         ...
-        {{"id": {num_codes - 1}, "code": "Brief description of the least common specific theme"}},
-        {{"id": {num_codes}, "code": "Sonstige"}}
+        {{"id": {num_codes - 1}, "topic": "Brief description of the least common specific theme"}},
+        {{"id": {num_codes}, "topic": "Sonstige"}}
     ]
 }}
 
 Ensure that your specific codes collectively cover the major themes in the responses, with "Sonstige" capturing any outliers or less common themes."""
-
 
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -55,13 +53,18 @@ Ensure that your specific codes collectively cover the major themes in the respo
     
     return response.choices[0].message.content
 
-def classify_review(review, topics):
+def classify_review(review, topics, question_text):
     topics_str = ", ".join([f'{topic["id"]}: {topic["topic"]}' for topic in topics])
-    prompt = f"""Based on the following topics: {topics_str}, classify the review below:
-    
-    Review: {review}
-    
-    Respond with the topic IDs that are relevant to this review in JSON format. The JSON format should look like this: {{"relevant_topics": [{{"id": 1}}, {{"id": 2}}]}} if topics with id 1 and 2 are relevant."""
+    prompt = f"""Given the following question and coding schema, classify the review:
+
+Question: {question_text}
+
+Coding Schema:
+{topics_str}
+
+Review: {review}
+
+Respond with the topic IDs that are relevant to this review in JSON format. The JSON format should look like this: {{"relevant_topics": [{{"id": 1}}, {{"id": 2}}]}} if topics with id 1 and 2 are relevant."""
     
     response = client.chat.completions.create(
         model="gpt-4o",
