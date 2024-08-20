@@ -1,54 +1,60 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 
 def create_binary_coding_excel_with_id(input_file, output_file):
     # Load the provided Excel file
-    df = pd.read_excel(input_file, sheet_name="Coded Responses")
-    coding_schema_df = pd.read_excel(input_file, sheet_name="Coding Schema")
+    try:
+        df = pd.read_excel(input_file, sheet_name="Coded Responses")
+        coding_schema_df = pd.read_excel(input_file, sheet_name="Coding Schema")
+    except Exception as e:
+        st.error(f"Error reading Excel file: {str(e)}")
+        return None
 
     # Check if 'id' column exists
     if 'id' not in df.columns:
         st.error("The input file does not contain an 'id' column.")
-        return
+        return None
 
-    # Automatically detect the column that holds respondents' answers
-    potential_columns = [col for col in df.columns if col not in ['id'] + list(coding_schema_df.columns)]
-    if len(potential_columns) == 1:
-        answer_column = potential_columns[0]
-    else:
-        st.write("Available columns: ", potential_columns)
-        answer_column = st.selectbox("Please select the column containing the respondents' answers:", options=potential_columns)
-        if answer_column not in df.columns:
-            st.error(f"The specified column '{answer_column}' does not exist in the dataset.")
-            return
+    # Identify the answer column (assuming it's the first non-'id' column)
+    answer_column = [col for col in df.columns if col != 'id'][0]
 
     # Convert the coding schema DataFrame into a dictionary
     coding_schema = dict(zip(coding_schema_df["Activity"], coding_schema_df["Code"]))
 
-    # Split the activities into separate columns
-    df_split = df[answer_column].str.split(", | and ", expand=True)
+    # Get all unique codes
+    all_codes = sorted(set(coding_schema.values()))
 
     # Create a DataFrame to hold the binary coding for each code
-    max_code = max(coding_schema.values())
-    binary_df = pd.DataFrame(0, index=df.index, columns=[f"{answer_column}r{i+1}" for i in range(max_code)])
+    binary_df = pd.DataFrame(0, index=df.index, columns=[f"{answer_column}r{code}" for code in all_codes])
 
-    # Map activities to their codes and set the corresponding columns to 1 where the code is mentioned
-    for idx, row in df_split.iterrows():
-        for activity in row:
-            if pd.notna(activity):  # only proceed if activity is not NaN
-                code = coding_schema.get(activity.strip())
-                if code is not None:
-                    binary_df.at[idx, f"{answer_column}r{code}"] = 1
+    # Function to process each row
+    def process_row(row):
+        binary = np.zeros(len(all_codes))
+        for i in range(1, 6):  # Assuming there are at most 5 code columns
+            code_col = f"Code {i}"
+            if code_col in row and pd.notna(row[code_col]):
+                code = int(row[code_col])
+                if code in all_codes:
+                    binary[all_codes.index(code)] = 1
+        return binary
+
+    # Apply the processing function to each row
+    binary_data = np.array(list(df.apply(process_row, axis=1)))
+    binary_df = pd.DataFrame(binary_data, columns=[f"{answer_column}r{code}" for code in all_codes])
 
     # Concatenate the original response, ID, and the binary coding
-    binary_df.insert(0, answer_column, df[answer_column])
-    binary_df.insert(0, "id", df["id"])
+    result_df = pd.concat([df[['id', answer_column]], binary_df], axis=1)
 
     # Save the final DataFrame to a new worksheet in the same Excel file
-    with pd.ExcelWriter(output_file) as writer:
-        df.to_excel(writer, sheet_name="Coded Responses", index=False)
-        binary_df.to_excel(writer, sheet_name="Binary Coding", index=False)
-        coding_schema_df.to_excel(writer, sheet_name="Coding Schema", index=False)
+    try:
+        with pd.ExcelWriter(output_file) as writer:
+            df.to_excel(writer, sheet_name="Coded Responses", index=False)
+            result_df.to_excel(writer, sheet_name="Binary Coding", index=False)
+            coding_schema_df.to_excel(writer, sheet_name="Coding Schema", index=False)
+    except Exception as e:
+        st.error(f"Error writing Excel file: {str(e)}")
+        return None
 
     return output_file
 
@@ -69,8 +75,13 @@ def binary_coding_page():
                     file_name=output_file_path,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
+            else:
+                st.error("An error occurred during file processing.")
 
     st.write("\n")
     st.write("### Example of Input File Structure")
     st.image("img/manucode_example.PNG", caption="Example of the expected structure for the input Excel file.")
     st.image("img/manucode_example_2.PNG", caption="This is how the Coding Schema should be set up.")
+
+if __name__ == "__main__":
+    binary_coding_page()
