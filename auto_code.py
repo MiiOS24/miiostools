@@ -134,7 +134,7 @@ def auto_code_tool_page():
     if 'custom_var_name' in st.session_state and 'results_df' in locals():
         custom_var_name = st.session_state.custom_var_name
         topic_columns = [col for col in results_df.columns if col not in ['Review', 'myID']]
-        new_column_names = {col: f"{custom_var_name}r{idx+1}" for idx, col in enumerate(topic_columns)}
+        new_column_names = {col: f"{custom_var_name}r{col}" for col in topic_columns}
         results_df.rename(columns=new_column_names, inplace=True)
 
         st.write(results_df)
